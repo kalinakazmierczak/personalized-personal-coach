@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Expo Start",
+			"type": "shell",
+			"command": "cd '/Users/kalinakazmierczak/Personal Project/personalized-personal-coach/workout-tracker' && npx expo start",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
