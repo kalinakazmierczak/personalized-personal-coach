@@ -48,10 +48,10 @@ const ExerciseSearch: React.FC<ExerciseSearchProps> = ({ onSelectExercise }) => 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>🔍 Search Exercises</Text>
+      <Text style={styles.label}>search exercises</Text>
       <TextInput
         style={styles.input}
-        placeholder="Search by name (e.g. squat)..."
+        placeholder="search by name..."
         placeholderTextColor={COLORS.textMuted}
         value={query}
         onChangeText={(text) => {
@@ -59,7 +59,7 @@ const ExerciseSearch: React.FC<ExerciseSearchProps> = ({ onSelectExercise }) => 
           if (text.length < 3) setShowResults(false);
         }}
       />
-      {loading && <ActivityIndicator size="small" color={COLORS.primary} style={styles.loader} />}
+      {loading && <ActivityIndicator size="small" color={COLORS.textMuted} style={styles.loader} />}
       {showResults && exercises.length > 0 && (
         <View style={styles.resultsList}>
           <FlatList
@@ -86,47 +86,49 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   label: {
-    fontSize: FONT_SIZES.md,
-    fontWeight: '600',
-    color: COLORS.text,
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
     marginBottom: SPACING.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
   input: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    padding: SPACING.md,
+    backgroundColor: 'transparent',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingVertical: SPACING.md,
     fontSize: FONT_SIZES.lg,
     color: COLORS.text,
+    fontWeight: '300',
   },
   loader: {
     marginTop: SPACING.sm,
   },
   resultsList: {
     backgroundColor: COLORS.surface,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: COLORS.border,
-    borderRadius: 10,
     marginTop: SPACING.xs,
     overflow: 'hidden',
   },
   resultItem: {
     padding: SPACING.md,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderBottomColor: COLORS.border,
   },
   resultName: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.md,
+    fontWeight: '400',
     color: COLORS.text,
-    textTransform: 'capitalize',
+    letterSpacing: 0.2,
   },
   resultMeta: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     color: COLORS.textMuted,
-    marginTop: 2,
-    textTransform: 'capitalize',
+    marginTop: 4,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });
 

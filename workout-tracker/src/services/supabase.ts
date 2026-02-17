@@ -88,6 +88,71 @@ export const getUserGoals = async (userId: string) => {
     .from('user_goals')
     .select('*')
     .eq('user_id', userId)
-    .eq('is_active', true);
+    .eq('is_active', true)
+    .order('priority', { ascending: false });
   return { data, error };
+};
+
+export const updateGoal = async (goalId: string, updates: Partial<{
+  target_description: string;
+  target_value: number;
+  target_date: string;
+  current_progress: number;
+  is_active: boolean;
+  priority: number;
+}>) => {
+  const { data, error } = await supabase
+    .from('user_goals')
+    .update(updates)
+    .eq('id', goalId)
+    .select();
+  return { data, error };
+};
+
+export const deleteGoal = async (goalId: string) => {
+  const { error } = await supabase
+    .from('user_goals')
+    .delete()
+    .eq('id', goalId);
+  return { error };
+};
+
+// ---------- Chat Messages ----------
+export const getChatMessages = async (userId: string, limit: number = 50) => {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+  return { data, error };
+};
+
+export const saveChatMessage = async (messageData: {
+  user_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}) => {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .insert([messageData])
+    .select()
+    .single();
+  return { data, error };
+};
+
+export const updateMessageFeedback = async (messageId: string, feedback: 'up' | 'down') => {
+  const { error } = await supabase
+    .from('chat_messages')
+    .update({ feedback })
+    .eq('id', messageId);
+  return { error };
+};
+
+export const clearChatHistory = async (userId: string) => {
+  const { error } = await supabase
+    .from('chat_messages')
+    .delete()
+    .eq('user_id', userId);
+  return { error };
 };

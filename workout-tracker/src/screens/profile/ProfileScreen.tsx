@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,34 +9,33 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import useAuth from '../../hooks/useAuth';
-import { scheduleDailyReminder, cancelAllNotifications, requestNotificationPermissions } from '../../services/notifications';
+import { useWorkouts } from '../../hooks/useWorkouts';
+import { useNotifications, NotificationPrefs } from '../../hooks/useNotifications';
 import { generateWorkoutPlan } from '../../services/aiChat';
-import { COLORS, SPACING, FONT_SIZES } from '../../constants';
+import { COLORS, SPACING, FONT_SIZES, REST_TIMER_OPTIONS, STREAK_MESSAGES } from '../../constants';
+import { calculateStreak, daysSinceLastWorkout, formatTimer } from '../../utils/helpers';
 import AIChatBubble from '../../components/AIChatBubble';
 
 const ProfileScreen = () => {
   const { user, logout } = useAuth();
-  const [remindersEnabled, setRemindersEnabled] = useState(false);
+  const { workoutLogs } = useWorkouts();
+  const { prefs, updatePrefs, snooze, unsnooze, isSnoozed } = useNotifications(workoutLogs);
   const [workoutPlan, setWorkoutPlan] = useState<string | null>(null);
+  const [restDefault, setRestDefault] = useState(90);
 
-  const handleToggleReminders = async (value: boolean) => {
-    if (value) {
-      const granted = await requestNotificationPermissions();
-      if (granted) {
-        await scheduleDailyReminder(8, 0);
-        setRemindersEnabled(true);
-      } else {
-        Alert.alert('Permission Required', 'Please allow notifications in Settings.');
-      }
-    } else {
-      await cancelAllNotifications();
-      setRemindersEnabled(false);
-    }
-  };
+  const streak = useMemo(() => calculateStreak(workoutLogs), [workoutLogs]);
+  const daysSince = useMemo(() => daysSinceLastWorkout(workoutLogs), [workoutLogs]);
+
+  const streakMessage = useMemo(() => {
+    if (streak === 0) return STREAK_MESSAGES.zero;
+    if (streak < 5) return STREAK_MESSAGES.low(streak);
+    if (streak < 14) return STREAK_MESSAGES.mid(streak);
+    return STREAK_MESSAGES.high(streak);
+  }, [streak]);
 
   const handleGeneratePlan = () => {
-    // Example goals — in production you'd fetch these from Supabase
     const plan = generateWorkoutPlan([
       {
         id: '1',
@@ -44,6 +43,9 @@ const ProfileScreen = () => {
         goal_type: 'strength',
         target_description: 'Get stronger',
         target_value: null,
+        target_date: null,
+        current_progress: 0,
+        priority: 0,
         is_active: true,
         created_at: new Date().toISOString(),
       },
@@ -52,9 +54,18 @@ const ProfileScreen = () => {
   };
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Log Out', style: 'destructive', onPress: logout },
+    Alert.alert('log out', 'are you sure?', [
+      { text: 'cancel', style: 'cancel' },
+      { text: 'log out', style: 'destructive', onPress: logout },
+    ]);
+  };
+
+  const handleSnooze = () => {
+    Alert.alert('snooze notifications', 'silence for how long?', [
+      { text: 'cancel', style: 'cancel' },
+      { text: '4 hours', onPress: () => snooze(4) },
+      { text: '8 hours', onPress: () => snooze(8) },
+      { text: '24 hours', onPress: () => snooze(24) },
     ]);
   };
 
@@ -65,33 +76,142 @@ const ProfileScreen = () => {
         <View style={styles.card}>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarText}>
-              {user?.email?.charAt(0).toUpperCase() || '?'}
+              {user?.email?.charAt(0).toLowerCase() || '?'}
             </Text>
           </View>
-          <Text style={styles.email}>{user?.email || 'Not logged in'}</Text>
+          <Text style={styles.email}>{user?.email || 'not logged in'}</Text>
         </View>
 
-        {/* Reminders */}
-        <View style={styles.card}>
-          <View style={styles.settingRow}>
-            <View>
-              <Text style={styles.settingTitle}>Daily Reminders</Text>
-              <Text style={styles.settingSubtitle}>Get notified at 8:00 AM</Text>
+        {/* Streak */}
+        <View style={styles.streakCard}>
+          <View style={styles.streakRow}>
+            <View style={styles.streakItem}>
+              <Text style={styles.streakValue}>{streak}</Text>
+              <Text style={styles.streakLabel}>streak</Text>
             </View>
+            <View style={styles.streakDivider} />
+            <View style={styles.streakItem}>
+              <Text style={styles.streakValue}>{workoutLogs.length}</Text>
+              <Text style={styles.streakLabel}>total</Text>
+            </View>
+            <View style={styles.streakDivider} />
+            <View style={styles.streakItem}>
+              <Text style={styles.streakValue}>
+                {daysSince !== null ? daysSince : '-'}
+              </Text>
+              <Text style={styles.streakLabel}>days ago</Text>
+            </View>
+          </View>
+          <Text style={styles.streakMessage}>{streakMessage}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>notifications</Text>
+
+          <View style={styles.settingRow}>
+            <Text style={styles.settingTitle}>daily reminders</Text>
             <Switch
-              value={remindersEnabled}
-              onValueChange={handleToggleReminders}
-              trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
-              thumbColor={remindersEnabled ? COLORS.primary : '#f4f3f4'}
+              value={prefs.enabled}
+              onValueChange={(v) => updatePrefs({ enabled: v })}
+              trackColor={{ false: COLORS.border, true: COLORS.accent }}
+              thumbColor={COLORS.text}
             />
+          </View>
+
+          {prefs.enabled && (
+            <>
+              <View style={styles.settingRow}>
+                <Text style={styles.settingTitle}>streak alerts</Text>
+                <Switch
+                  value={prefs.streakAlerts}
+                  onValueChange={(v) => updatePrefs({ streakAlerts: v })}
+                  trackColor={{ false: COLORS.border, true: COLORS.accent }}
+                  thumbColor={COLORS.text}
+                />
+              </View>
+
+              <View style={styles.settingRow}>
+                <Text style={styles.settingTitle}>missed workout reminders</Text>
+                <Switch
+                  value={prefs.missedReminders}
+                  onValueChange={(v) => updatePrefs({ missedReminders: v })}
+                  trackColor={{ false: COLORS.border, true: COLORS.accent }}
+                  thumbColor={COLORS.text}
+                />
+              </View>
+
+              <View style={styles.settingRow}>
+                <Text style={styles.settingTitle}>celebrations</Text>
+                <Switch
+                  value={prefs.celebrations}
+                  onValueChange={(v) => updatePrefs({ celebrations: v })}
+                  trackColor={{ false: COLORS.border, true: COLORS.accent }}
+                  thumbColor={COLORS.text}
+                />
+              </View>
+
+              <View style={styles.settingRow}>
+                <View>
+                  <Text style={styles.settingTitle}>
+                    {isSnoozed ? 'notifications snoozed' : 'snooze'}
+                  </Text>
+                  <Text style={styles.settingSubtitle}>
+                    {isSnoozed ? 'tap to unsnooze' : 'temporarily silence'}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.snoozeButton}
+                  onPress={isSnoozed ? unsnooze : handleSnooze}
+                >
+                  <Ionicons
+                    name={isSnoozed ? 'notifications-off' : 'notifications-outline'}
+                    size={18}
+                    color={isSnoozed ? COLORS.warning : COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Rest Timer Defaults */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>rest timer default</Text>
+          <View style={styles.timerPresetsRow}>
+            {REST_TIMER_OPTIONS.map((sec) => (
+              <TouchableOpacity
+                key={sec}
+                style={[
+                  styles.timerPreset,
+                  restDefault === sec && styles.timerPresetActive,
+                ]}
+                onPress={() => setRestDefault(sec)}
+              >
+                <Text
+                  style={[
+                    styles.timerPresetText,
+                    restDefault === sec && styles.timerPresetTextActive,
+                  ]}
+                >
+                  {formatTimer(sec)}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
+        <View style={styles.divider} />
+
         {/* AI Workout Plan */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>🤖 AI Workout Plan</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>workout plan</Text>
           <TouchableOpacity style={styles.generateButton} onPress={handleGeneratePlan}>
-            <Text style={styles.generateButtonText}>Generate Plan</Text>
+            <Text style={styles.generateButtonText}>generate</Text>
           </TouchableOpacity>
           {workoutPlan && (
             <View style={styles.planContainer}>
@@ -100,9 +220,11 @@ const ProfileScreen = () => {
           )}
         </View>
 
+        <View style={styles.divider} />
+
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Log Out</Text>
+          <Text style={styles.logoutButtonText}>log out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -119,88 +241,182 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SPACING.lg,
-    paddingBottom: SPACING.xxl,
-    gap: SPACING.md,
+    paddingBottom: SPACING.xxl * 2,
+    gap: SPACING.lg,
   },
   card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: SPACING.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
     alignItems: 'center',
+    paddingVertical: SPACING.lg,
   },
   avatarCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 0,
+    backgroundColor: COLORS.surface,
+    borderWidth: 0.5,
+    borderColor: COLORS.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
   avatarText: {
-    color: '#fff',
+    color: COLORS.accent,
     fontSize: FONT_SIZES.xxl,
-    fontWeight: '800',
+    fontWeight: '200',
   },
   email: {
-    fontSize: FONT_SIZES.lg,
-    color: COLORS.text,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
+    fontWeight: '300',
+    letterSpacing: 0.5,
   },
+
+  // Streak card
+  streakCard: {
+    backgroundColor: COLORS.surface,
+    padding: SPACING.lg,
+    borderWidth: 0.5,
+    borderColor: COLORS.border,
+  },
+  streakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  streakItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  streakValue: {
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: '200',
+    color: COLORS.accent,
+  },
+  streakLabel: {
+    fontSize: 9,
+    color: COLORS.textMuted,
+    fontWeight: '400',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  streakDivider: {
+    width: 0.5,
+    height: 28,
+    backgroundColor: COLORS.border,
+  },
+  streakMessage: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.textSecondary,
+    fontWeight: '300',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    lineHeight: 18,
+  },
+
+  divider: {
+    height: 0.5,
+    backgroundColor: COLORS.border,
+  },
+
+  // Section
+  section: {
+    paddingVertical: SPACING.xs,
+  },
+  sectionTitle: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+
+  // Settings
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
+    paddingVertical: SPACING.sm + 2,
   },
   settingTitle: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
+    fontSize: FONT_SIZES.md,
+    fontWeight: '400',
     color: COLORS.text,
+    letterSpacing: 0.3,
   },
   settingSubtitle: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     color: COLORS.textMuted,
     marginTop: 2,
+    letterSpacing: 0.5,
+    fontWeight: '300',
   },
-  sectionTitle: {
-    fontSize: FONT_SIZES.xl,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
-    alignSelf: 'flex-start',
+  snoozeButton: {
+    padding: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
+
+  // Timer presets
+  timerPresetsRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  timerPreset: {
+    flex: 1,
+    paddingVertical: SPACING.sm + 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+  },
+  timerPresetActive: {
+    backgroundColor: COLORS.text,
+    borderColor: COLORS.text,
+  },
+  timerPresetText: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.textMuted,
+    fontWeight: '400',
+    letterSpacing: 1,
+  },
+  timerPresetTextActive: {
+    color: COLORS.background,
+    fontWeight: '500',
+  },
+
+  // AI Plan
   generateButton: {
-    backgroundColor: COLORS.secondary,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.lg,
-    borderRadius: 10,
+    alignSelf: 'flex-start',
   },
   generateButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: FONT_SIZES.md,
+    color: COLORS.text,
+    fontWeight: '400',
+    fontSize: FONT_SIZES.sm,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   planContainer: {
-    marginTop: SPACING.md,
-    width: '100%',
+    marginTop: SPACING.lg,
   },
+
+  // Logout
   logoutButton: {
-    backgroundColor: COLORS.error,
+    borderWidth: 1,
+    borderColor: COLORS.error,
     paddingVertical: SPACING.md,
-    borderRadius: 12,
     alignItems: 'center',
-    marginTop: SPACING.md,
   },
   logoutButtonText: {
-    color: '#fff',
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '700',
+    color: COLORS.error,
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '400',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 });
 

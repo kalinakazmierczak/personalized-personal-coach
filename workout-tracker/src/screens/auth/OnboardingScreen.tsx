@@ -14,10 +14,11 @@ const OnboardingScreen = () => {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.heroSection}>
-          <Text style={styles.emoji}>💪</Text>
-          <Text style={styles.title}>Workout Tracker</Text>
+          <Text style={styles.brand}>the</Text>
+          <Text style={styles.title}>workout{'\n'}tracker</Text>
+          <View style={styles.divider} />
           <Text style={styles.subtitle}>
-            Log workouts, track progress, and crush your fitness goals.
+            log your lifts. track your progress.{'\n'}stay consistent.
           </Text>
         </View>
 
@@ -26,14 +27,14 @@ const OnboardingScreen = () => {
             style={styles.primaryButton}
             onPress={() => navigation.navigate('SignUp')}
           >
-            <Text style={styles.primaryButtonText}>Get Started</Text>
+            <Text style={styles.primaryButtonText}>get started</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.secondaryButton}
             onPress={() => navigation.navigate('Login')}
           >
-            <Text style={styles.secondaryButtonText}>I already have an account</Text>
+            <Text style={styles.secondaryButtonText}>i have an account</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -54,52 +55,65 @@ const styles = StyleSheet.create({
   heroSection: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  emoji: {
-    fontSize: 80,
-    marginBottom: SPACING.lg,
+  brand: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '300',
+    color: COLORS.textMuted,
+    letterSpacing: 6,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.xs,
   },
   title: {
-    fontSize: FONT_SIZES.xxxl,
-    fontWeight: '800',
+    fontSize: FONT_SIZES.display,
+    fontWeight: '200',
     color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
+    letterSpacing: -1,
+    lineHeight: 46,
+  },
+  divider: {
+    width: 40,
+    height: 1,
+    backgroundColor: COLORS.accent,
+    marginVertical: SPACING.lg,
   },
   subtitle: {
     fontSize: FONT_SIZES.lg,
     color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: SPACING.lg,
+    lineHeight: 26,
+    fontWeight: '300',
+    letterSpacing: 0.3,
   },
   buttonSection: {
-    gap: SPACING.md,
+    gap: SPACING.sm,
     paddingBottom: SPACING.lg,
   },
   primaryButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.md,
-    borderRadius: 12,
+    backgroundColor: COLORS.text,
+    paddingVertical: SPACING.md + 2,
+    borderRadius: 0,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: '#fff',
-    fontSize: FONT_SIZES.xl,
-    fontWeight: '700',
+    color: COLORS.background,
+    fontSize: FONT_SIZES.md,
+    fontWeight: '500',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   secondaryButton: {
-    paddingVertical: SPACING.md,
-    borderRadius: 12,
+    paddingVertical: SPACING.md + 2,
+    borderRadius: 0,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   secondaryButtonText: {
-    color: COLORS.primary,
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZES.md,
+    fontWeight: '400',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 });
 

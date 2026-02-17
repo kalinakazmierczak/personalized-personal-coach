@@ -30,6 +30,7 @@ export const useWorkouts = () => {
 
   const logWorkout = useCallback(async (workout: {
     exercise_name: string;
+    category: string;
     sets: number;
     reps: number;
     weight: number;

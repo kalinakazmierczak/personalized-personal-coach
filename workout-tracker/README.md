@@ -82,7 +82,7 @@ src/
 
 ## Tech Stack
 
-- **React Native** + **Expo SDK 52**
+- **React Native** + **Expo SDK 54**
 - **TypeScript**
 - **React Navigation 7** (native-stack + bottom-tabs)
 - **Supabase** (Auth + PostgreSQL + RLS)

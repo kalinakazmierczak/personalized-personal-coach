@@ -9,9 +9,10 @@ interface WorkoutCardProps {
   reps: number;
   weight: number;
   date: string;
+  category?: string;
 }
 
-const WorkoutCard: React.FC<WorkoutCardProps> = ({ exercise, sets, reps, weight, date }) => {
+const WorkoutCard: React.FC<WorkoutCardProps> = ({ exercise, sets, reps, weight, date, category }) => {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -21,14 +22,14 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({ exercise, sets, reps, weight,
       <View style={styles.statsRow}>
         <View style={styles.stat}>
           <Text style={styles.statValue}>{sets}</Text>
-          <Text style={styles.statLabel}>Sets</Text>
+          <Text style={styles.statLabel}>sets</Text>
         </View>
-        <View style={styles.divider} />
+        <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>{reps}</Text>
-          <Text style={styles.statLabel}>Reps</Text>
+          <Text style={styles.statLabel}>reps</Text>
         </View>
-        <View style={styles.divider} />
+        <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>{weight}</Text>
           <Text style={styles.statLabel}>lbs</Text>
@@ -42,13 +43,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
     padding: SPACING.lg,
-    borderRadius: 16,
-    marginBottom: SPACING.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    marginBottom: SPACING.sm,
+    borderBottomWidth: 0.5,
+    borderBottomColor: COLORS.border,
   },
   header: {
     flexDirection: 'row',
@@ -57,42 +54,43 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   exercise: {
-    fontSize: FONT_SIZES.xl,
-    fontWeight: '700',
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '400',
     color: COLORS.text,
     flex: 1,
-    textTransform: 'capitalize',
+    letterSpacing: 0.2,
   },
   date: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     color: COLORS.textMuted,
+    fontWeight: '400',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 10,
-    padding: SPACING.md,
   },
   stat: {
     flex: 1,
     alignItems: 'center',
   },
   statValue: {
-    fontSize: FONT_SIZES.xxl,
-    fontWeight: '800',
-    color: COLORS.primary,
+    fontSize: FONT_SIZES.xl,
+    fontWeight: '300',
+    color: COLORS.accent,
   },
   statLabel: {
     fontSize: FONT_SIZES.xs,
     color: COLORS.textMuted,
     marginTop: 2,
     textTransform: 'uppercase',
-    fontWeight: '600',
+    fontWeight: '400',
+    letterSpacing: 1.5,
   },
-  divider: {
-    width: 1,
-    height: 30,
+  statDivider: {
+    width: 0.5,
+    height: 24,
     backgroundColor: COLORS.border,
   },
 });

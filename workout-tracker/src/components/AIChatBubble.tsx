@@ -21,30 +21,32 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '90%',
     padding: SPACING.md,
-    borderRadius: 16,
     marginVertical: SPACING.xs,
   },
   userBubble: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.surfaceElevated,
     alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
+    borderWidth: 0.5,
+    borderColor: COLORS.border,
   },
   aiBubble: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: 'transparent',
     alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.accent,
+    paddingLeft: SPACING.md,
   },
   messageText: {
     fontSize: FONT_SIZES.md,
-    lineHeight: 20,
+    lineHeight: 22,
+    fontWeight: '300',
+    letterSpacing: 0.2,
   },
   userText: {
-    color: '#fff',
+    color: COLORS.text,
   },
   aiText: {
-    color: COLORS.text,
+    color: COLORS.textSecondary,
   },
 });
 

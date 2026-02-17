@@ -11,12 +11,12 @@ const WeightSuggestion: React.FC<WeightSuggestionProps> = ({ suggestedWeight, on
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.label}>💡 Suggested Weight</Text>
+        <Text style={styles.label}>suggested weight</Text>
         <Text style={styles.weight}>{suggestedWeight} lbs</Text>
-        <Text style={styles.hint}>Based on your last workout</Text>
+        <Text style={styles.hint}>based on your last session</Text>
       </View>
       <TouchableOpacity style={styles.applyButton} onPress={() => onApply(suggestedWeight)}>
-        <Text style={styles.applyText}>Apply</Text>
+        <Text style={styles.applyText}>apply</Text>
       </TouchableOpacity>
     </View>
   );
@@ -27,40 +27,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#EEF2FF',
-    borderRadius: 12,
+    backgroundColor: COLORS.accentMuted,
     padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.primaryLight,
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.accent,
   },
   content: {
     flex: 1,
   },
   label: {
-    fontSize: FONT_SIZES.md,
-    fontWeight: '600',
-    color: COLORS.primaryDark,
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '500',
+    color: COLORS.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
   weight: {
     fontSize: FONT_SIZES.xxl,
-    fontWeight: '800',
-    color: COLORS.primary,
+    fontWeight: '200',
+    color: COLORS.text,
     marginVertical: 2,
   },
   hint: {
     fontSize: FONT_SIZES.xs,
     color: COLORS.textMuted,
+    fontWeight: '300',
+    letterSpacing: 0.5,
   },
   applyButton: {
-    backgroundColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.lg,
-    borderRadius: 8,
   },
   applyText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: FONT_SIZES.md,
+    color: COLORS.accent,
+    fontWeight: '500',
+    fontSize: FONT_SIZES.xs,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 });
 
