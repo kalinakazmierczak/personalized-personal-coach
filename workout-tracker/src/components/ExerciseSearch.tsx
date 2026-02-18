@@ -13,26 +13,32 @@ import { Exercise } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 
 interface ExerciseSearchProps {
+  value: string;
+  onChangeValue: (text: string) => void;
   onSelectExercise: (exercise: Exercise) => void;
 }
 
-const ExerciseSearch: React.FC<ExerciseSearchProps> = ({ onSelectExercise }) => {
-  const [query, setQuery] = useState('');
+const ExerciseSearch: React.FC<ExerciseSearchProps> = ({ value, onChangeValue, onSelectExercise }) => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [selectedName, setSelectedName] = useState('');
 
   const handleSearch = useCallback(async () => {
-    if (query.length < 3) {
-      setExercises([]);
+    // Don't search if the current value matches what was just selected
+    if (value === selectedName || value.length < 3) {
+      if (value.length < 3) {
+        setExercises([]);
+        setShowResults(false);
+      }
       return;
     }
     setLoading(true);
-    const results = await searchExercises(query);
+    const results = await searchExercises(value);
     setExercises(results);
     setShowResults(true);
     setLoading(false);
-  }, [query]);
+  }, [value, selectedName]);
 
   useEffect(() => {
     const delay = setTimeout(handleSearch, 500);
@@ -40,24 +46,32 @@ const ExerciseSearch: React.FC<ExerciseSearchProps> = ({ onSelectExercise }) => 
   }, [handleSearch]);
 
   const handleSelect = (exercise: Exercise) => {
+    setSelectedName(exercise.name);
     onSelectExercise(exercise);
-    setQuery('');
+    onChangeValue(exercise.name);
     setExercises([]);
     setShowResults(false);
   };
 
+  const handleChangeText = (text: string) => {
+    if (text !== selectedName) {
+      setSelectedName('');
+    }
+    onChangeValue(text);
+    if (text.length < 3) {
+      setShowResults(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>search exercises</Text>
+      <Text style={styles.label}>exercise</Text>
       <TextInput
         style={styles.input}
-        placeholder="search by name..."
+        placeholder="search or type exercise..."
         placeholderTextColor={COLORS.textMuted}
-        value={query}
-        onChangeText={(text) => {
-          setQuery(text);
-          if (text.length < 3) setShowResults(false);
-        }}
+        value={value}
+        onChangeText={handleChangeText}
       />
       {loading && <ActivityIndicator size="small" color={COLORS.textMuted} style={styles.loader} />}
       {showResults && exercises.length > 0 && (

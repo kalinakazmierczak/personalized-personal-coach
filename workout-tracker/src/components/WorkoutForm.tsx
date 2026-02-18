@@ -70,18 +70,11 @@ const WorkoutForm: React.FC<WorkoutFormProps> = ({ category, onWorkoutLogged }) 
 
   return (
     <View style={styles.container}>
-      <ExerciseSearch onSelectExercise={handleSelectExercise} />
-
-      <View style={styles.inputWrapper}>
-        <Text style={styles.label}>exercise</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. bench press"
-          placeholderTextColor={COLORS.textMuted}
-          value={exerciseName}
-          onChangeText={setExerciseName}
-        />
-      </View>
+      <ExerciseSearch
+        value={exerciseName}
+        onChangeValue={setExerciseName}
+        onSelectExercise={handleSelectExercise}
+      />
 
       {exerciseName.length > 0 && suggestedWeight && (
         <WeightSuggestion
