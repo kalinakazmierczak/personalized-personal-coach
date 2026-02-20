@@ -1,4 +1,4 @@
-# 💪 Workout Tracker
+# Workout Tracker
 
 A React Native (Expo) iOS workout tracking app with Supabase backend, exercise search, smart weight suggestions, and AI-powered workout plans.
 
